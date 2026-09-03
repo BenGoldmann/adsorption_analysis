@@ -1,0 +1,36 @@
+# This files contains all the neccessary input parameters for processing.
+
+# Path to input file.
+LAMMPSDUMP_DIR = /home/bgoldman/Documents/mlcc_project/nio_pibsa_dhta/ 
+
+# Type IDs for surface and additive atoms.
+SURFACE_ID = 1 2
+ADDITIVE_HEAD_ID = 3 12 13
+ADDITIVE_TAIL_ID = 4 5 6 7 8 9 10 11
+
+# Surface of the slab (in \AA**2).
+SURFACE_AREA = 2528
+
+# Number and size of additives.
+ADDITIVE_NUM = 15
+ADDITIVE_ATOMS_NUM = 201
+
+# Element of each additive atom type.
+ELEM_1 = Ni_ion
+ELEM_2 = O_ion
+ELEM_3 = C
+ELEM_4 = C
+ELEM_5 = C
+ELEM_6 = C
+ELEM_7 = C
+ELEM_8 = C
+ELEM_9 = C
+ELEM_10 = H
+ELEM_11 = H
+ELEM_12 = O
+ELEM_13 = O
+
+# Render colors in VMD notation
+SURFACE_COLOR = 2
+ADDITIVE_HEAD_COLOR = 3
+ADDITIVE_TAIL_COLOR = 22
