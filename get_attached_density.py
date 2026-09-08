@@ -51,17 +51,16 @@ def plot_density(final, equilibrium_start, avg_coverage, avg_attachment_rate, pa
         if key.startswith("ELEM_") and value in element_masses
     }
 
-    eq_frame_start = equilibrium_start * 100
-    if not final or eq_frame_start >= len(final):
+    if not final or equilibrium_start >= len(final):
         raise ValueError("EQUILIBRIUM is beyond the available attachment frames")
 
     hist_binsize = 0.2
-    num_equilibrium_frames = len(final) - eq_frame_start
+    num_equilibrium_frames = len(final) - equilibrium_start
     scaling_factor = 2 * surface_area * hist_binsize * num_equilibrium_frames / 10**30
     head_positions, head_weights = [], []
     tail_positions, tail_weights = [], []
 
-    for frame in final[eq_frame_start:]:
+    for frame in final[equilibrium_start:]:
         for polymer in frame:
             for atom_type, z_position in polymer:
                 atom_type = int(atom_type)

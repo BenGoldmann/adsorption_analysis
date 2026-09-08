@@ -100,6 +100,7 @@ def process_polymer(worker_arg):
     polymer = u.atoms[start:stop]
 
     attachment_by_frame = []
+    surface_by_frame = []
 
     for ts in u.trajectory:
         z = polymer.positions[:, 2]
@@ -113,6 +114,7 @@ def process_polymer(worker_arg):
 
         if attached_to is None:
             attachment_by_frame.append([])  # not attached
+            surface_by_frame.append(None)
             continue
 
         if attached_to == "bottom":
@@ -124,12 +126,13 @@ def process_polymer(worker_arg):
         # MDAnalysis usually stores types as strings; keep as-is
         frame_list = [(atom.type, float(dist)) for atom, dist in zip(polymer, d)]
         attachment_by_frame.append(frame_list)
+        surface_by_frame.append(attached_to)
 
     # (Optional sanity check)
     if len(attachment_by_frame) != n_frames:
         raise RuntimeError("Frame count mismatch while processing polymer.")
 
-    return attachment_by_frame  # shape: [frame][(type, dist), ...] or []
+    return attachment_by_frame, surface_by_frame
 
 
 def main():
@@ -138,11 +141,12 @@ def main():
     print("Start of analysis")
 
     with Pool() as pool:
-        # results shape: [polymer][frame][(type,dist), ...]
+        # results shape: [polymer][(frame atoms, frame surface)]
         results = pool.map(process_polymer, worker_args)
 
     # Transpose to desired structure: [frame][polymer][...]
-    final = [[results[p][f] for p in range(additive_num)] for f in range(n_frames)]
+    final = [[results[p][0][f] for p in range(additive_num)] for f in range(n_frames)]
+    surfaces = [[results[p][1][f] for p in range(additive_num)] for f in range(n_frames)]
 
     print(f"Built attachment list with {len(final)} frames and {len(final[0]) if final else 0} polymers.")
 
@@ -150,7 +154,12 @@ def main():
     with out_path.open("wb") as handle:
         pickle.dump(final, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    surface_path = working_dir / "attachment_surface_master.pkl"
+    with surface_path.open("wb") as handle:
+        pickle.dump(surfaces, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     print(f"Saved output to {out_path}")
+    print(f"Saved surface labels to {surface_path}")
 
 
 if __name__ == "__main__":
