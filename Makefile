@@ -1,0 +1,80 @@
+# Interpreter for running the scripts
+INTERPRETER = python3
+
+# Directory containing the scripts and data files
+SCRIPTS_DIR = /home/bgoldman/Documents/mlcc_project/z_scripts/adsorption_analysis
+
+# Scripts
+REMOVE_SOLVENT_SCRIPT = $(SCRIPTS_DIR)/remove_solvent.py
+ISOLATE_ATTACHED_SCRIPT = $(SCRIPTS_DIR)/isolate_attached.py
+GET_ATTACHED_SNAPSHOTS_SCRIPT = $(SCRIPTS_DIR)/get_attached_snapshots.py
+ATTACHMENT_ANALYSIS_SCRIPT = $(SCRIPTS_DIR)/attachment_analysis.py
+GET_ATTACHMENT_STATISTICS_SCRIPT = $(SCRIPTS_DIR)/get_attachment_statistics.py
+GET_ALL_DENSITY_SCRIPT = $(SCRIPTS_DIR)/get_all_density.py
+GET_ATTACHED_DENSITY_SCRIPT = $(SCRIPTS_DIR)/get_attached_density.py
+
+# Input and data files
+PARAMS_FILE = parameters.in
+ELEMENTS_DATA = $(SCRIPTS_DIR)/elements.data
+DUMP_FILE = dump.lammpstrj
+
+# Output files
+DUMP_FILE_NOSOLVENT = dump_nosolvent.lammpstrj
+ATTACHED_ONLY_FRAME = attached_only_frame.lammpstrj
+SNAPSHOT_SIDE = side.tga
+SNAPSHOT_TOP = top.tga
+ATTACHMENT_MASTER = attachment_master.pkl
+ATTACHMENT_SURFACE = attachment_surface.pkl
+ATTACHMENT_VS_TIME_PLOT = attachment_vs_time.jpg
+ATTACHMENT_STATISTICS_FILE = attachment_statistics.txt
+ALL_DENSITY_PLOT = all_density.jpg
+ALL_DENSITY_FILE = all_density.txt
+ATTACHED_DENSITY_PLOT = attached_density.jpg
+ATTACHED_DENSITY_FILE = attached_density.txt
+
+# Rules for generating output files
+$(DUMP_FILE_NOSOLVENT) : $(REMOVE_SOLVENT_SCRIPT) $(PARAMS_FILE) $(DUMP_FILE)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ATTACHED_ONLY_FRAME) : $(ISOLATE_ATTACHED_SCRIPT) $(PARAMS_FILE) $(DUMP_FILE_NOSOLVENT)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(SNAPSHOT_SIDE) : $(GET_ATTACHED_SNAPSHOTS_SCRIPT) $(PARAMS_FILE) $(ATTACHED_ONLY_FRAME) $(ELEMENTS_DATA)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(SNAPSHOT_TOP) : $(GET_ATTACHED_SNAPSHOTS_SCRIPT) $(PARAMS_FILE) $(ATTACHMENT_FRAME) $(ELEMENTS_DATA)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ATTACHMENT_MASTER) : $(ATTACHMENT_ANALYSIS_SCRIPT) $(PARAMS_FILE) $(DUMP_FILE_NOSOLVENT)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ATTACHMENT_SURFACE) : $(ATTACHMENT_ANALYSIS_SCRIPT) $(PARAMS_FILE) $(DUMP_FILE_NOSOLVENT)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ATTACHMENT_STATISTICS_FILE) : $(GET_ATTACHMENT_STATISTICS_SCRIPT) $(PARAMS_FILE) $(ATTACHMENT_MASTER) $(ATTACHMENT_SURFACE)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ALL_DENSITY_FILE): $(GET_ALL_DENSITY_SCRIPT) $(PARAMS_FILE) $(DUMP_FILE_NOSOLVENT) $(ATTACHMENT_STATISTICS_FILE) $(ELEMENTS_DATA)
+	$(INTERPRETER) $< $(word 2,$^)
+
+$(ATTACHED_DENSITY_FILE) : $(GET_ATTACHED_DENSITY_SCRIPT) $(PARAMS_FILE) $(ATTACHMENT_MASTER) $(ATTACHMENT_STATISTICS_FILE) $(ELEMENTS_DATA)
+	$(INTERPRETER) $< $(word 2,$^)
+
+.PHONY : all
+all : $(SNAPSHOT_SIDE) $(ALL_DENSITY_FILE) $(ATTACHED_DENSITY_FILE)
+
+# Clean up generated files
+.PHONY : clean
+clean :
+	rm -f $(DUMP_FILE_NOSOLVENT)
+	rm -f $(ATTACHED_ONLY_FRAME)
+	rm -f $(SNAPSHOT_SIDE)
+	rm -f $(SNAPSHOT_TOP)
+	rm -f $(ATTACHMENT_MASTER)
+	rm -f $(ATTACHMENT_SURFACE)
+	rm -f $(ATTACHMENT_VS_TIME_PLOT)
+	rm -f $(ATTACHMENT_STATISTICS_FILE)
+	rm -f $(ALL_DENSITY_PLOT)
+	rm -f $(ALL_DENSITY_FILE)
+	rm -f $(ATTACHED_DENSITY_PLOT)
+	rm -f $(ATTACHED_DENSITY_FILE)

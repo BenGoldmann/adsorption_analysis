@@ -102,26 +102,25 @@ def plot_attachment_vs_time(final, surfaces, params, output_dir):
     avg_coverage, coverage_eq_start = find_equilibrium(surface_coverage_total)
     avg_bottom_coverage = np.mean(surface_coverage_bottom[coverage_eq_start:])
     avg_top_coverage = np.mean(surface_coverage_top[coverage_eq_start:])
+    top_bottom_ratio = max([avg_top_coverage, avg_bottom_coverage]) / min([avg_top_coverage, avg_bottom_coverage]) if min([avg_top_coverage, avg_bottom_coverage]) != 0 else float('inf')
     avg_attachment_rate, rate_eq_start = find_equilibrium(attachment_rate_total)
     
     fig, ax = plt.subplots(figsize=(5, 5))
 
     block_times = (np.arange(len(surface_coverage_total)) + 0.5) * 10
     ax.plot(block_times, surface_coverage_total, label='Total')
-    ax.plot(block_times, surface_coverage_bottom, label='Bottom')
-    ax.plot(block_times, surface_coverage_top, label='Top')
+    ax.fill_between(block_times, surface_coverage_bottom, surface_coverage_top, color='tab:blue', alpha=0.3)
     ax.axhline(avg_coverage, alpha=0.5)
     ax.axvline(block_times[coverage_eq_start], alpha=0.3, linestyle='--', color='gray')
+    ax.set_ylim(0, max([max(surface_coverage_bottom), max(surface_coverage_top)]) * 1.1)
     ax.set_xlabel('Time (ns)', size=12)
     ax.set_ylabel('Surface coverage (polymer/nm$^2$)', size=12)
     ax.tick_params(axis='both', labelsize=12)
-    ax.legend()
     
     # Add text annotations
-    ax.text(0.95, 0.05, f'Total: {avg_coverage:.2f} pol./nm$^2$\n'
-                     f'Bottom: {avg_bottom_coverage:.2f} pol./nm$^2$\n'
-                     f'Top: {avg_top_coverage:.2f} pol./nm$^2$\n'
-                     f'Attachment rate: {avg_attachment_rate*100:.0f}%',
+    ax.text(0.95, 0.05, f'Coverage: {avg_coverage:.2f} pol./nm$^2$\n'
+                     f'Attachment rate: {avg_attachment_rate*100:.0f}%\n'
+                     f'Top/Bottom ratio: {top_bottom_ratio:.2f}',
             transform=ax.transAxes, verticalalignment='bottom', horizontalalignment='right',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=1))
 
@@ -134,6 +133,7 @@ def plot_attachment_vs_time(final, surfaces, params, output_dir):
             f'COVERAGE={avg_coverage:.2f}\n'
             f'BOTTOM_COVERAGE={avg_bottom_coverage:.2f}\n'
             f'TOP_COVERAGE={avg_top_coverage:.2f}\n'
+            f'TOP_BOTTOM_RATIO={top_bottom_ratio:.2f}\n'
             f'ATTACHMENT_RATE={avg_attachment_rate * 100:.0f}\n'
         )
 
@@ -154,7 +154,7 @@ def main():
     if not master_path.is_file():
         raise SystemExit(f"ERROR: Attachment analysis output not found: {master_path}")
     final = pickle_open(master_path)
-    surface_path = output_dir / "attachment_surface_master.pkl"
+    surface_path = output_dir / "attachment_surface.pkl"
     if not surface_path.is_file():
         raise SystemExit(
             f"ERROR: Surface labels not found: {surface_path}. "

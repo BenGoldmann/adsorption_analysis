@@ -154,7 +154,7 @@ def main():
     with out_path.open("wb") as handle:
         pickle.dump(final, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    surface_path = working_dir / "attachment_surface_master.pkl"
+    surface_path = working_dir / "attachment_surface.pkl"
     with surface_path.open("wb") as handle:
         pickle.dump(surfaces, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
