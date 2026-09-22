@@ -62,6 +62,7 @@ def main():
 	)
 
 	output_jpg = directory / "attached_density.jpg"
+	print(f"Density plot is sum of these files:\n" + "\n".join(str(f) for f in files))
 
 	figure, axis = plt.subplots(figsize=(5, 5))
 	axis.plot(position, head_sum, label="Head", color="tab:orange")
