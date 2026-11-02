@@ -7,7 +7,7 @@ import pickle
 import sys
 from pathlib import Path
 
-from read_parameters import read_parameters
+from z_scripts.helper_scripts.read_parameters import read_parameters
 
 
 def prepare_trajectory():
